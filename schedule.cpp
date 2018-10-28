@@ -2,6 +2,7 @@
 using namespace std;
 
 //Structure definition
+enum pState{Running,Waiting,Terminated};
 struct Process{
     //Process IDs
     int pid;
@@ -12,7 +13,8 @@ struct Process{
     string sched_policy;
 
     //process state info
-    char state;
+    pState state;
+    int burst_left;
     int time_quanta;
     bool preemption;
 };
@@ -21,7 +23,7 @@ enum eventType{Arrival,CPUburstComp,TimerExpired};
 struct Event{
     int pid;//the id which generated this event
     eventType type;
-    double time;//time of occurance of this event
+    int time;//time of occurance of this event
 };
 
 //Global Variables
@@ -55,10 +57,11 @@ int main(){
 /*                      FILE HANDLING                      */
 //Building the comparater for our vector
 bool comparater(pair<int,int> p1,pair<int,int>p2){
+    //sorting in reverse order of their arrival time
     if(p1.first==p2.first){
-        return p1.second<=p2.second;
+        return p1.second>=p2.second;
     }
-    else if(p1.first<p2.first){
+    else if(p1.first>p2.first){
         return true;
     }
     return false;
@@ -115,7 +118,7 @@ bool event_comparater(struct Event e1,struct Event e2){
     return false;
 }
 //Making the event struct
-struct Event create_event(int pid,eventType type,double time){
+struct Event create_event(int pid,eventType type,int time){
     struct Event e1;
     e1.pid=pid;
     e1.type=type;
@@ -141,7 +144,10 @@ struct Event pop_heapify(vector<struct Event> &event_pq){
     return eve;
 }
 
-int schedule_like_FCFS(vector<pair<int,int>> process_times){
+int schedule_like_FCFS(vector<pair<int,int>> &process_times){
+    //Initializing the ready queue for the process
+    queue<int> ready_queue;
+
     //Initializing the event heap (min heap based on the event time)
     vector<struct Event> event_pq;
     //Making this vector as a heap
@@ -151,6 +157,82 @@ int schedule_like_FCFS(vector<pair<int,int>> process_times){
     int assign_pid=0;
     struct Event e1=create_event(assign_pid,Arrival,process_times[assign_pid].second);
     push_heapify(e1,event_pq);
-    cout<<event_pq.front().time<<endl;
+    assign_pid++;
+
+    //Initlaizing the Simluation variables
+    int current_time=0;//starting the clock (tic-toc)
+
+    //Now starting the SIMLUATION LOOP
+    while (event_pq.size()!=0){
+        //Getting the most imminent event
+        e1=pop_heapify(event_pq);
+        //Synchronizing the clock with this event
+        current_time=e1.time;//correct
+
+        //Handling the events according to its type
+        if(e1.type==Arrival){
+
+        }
+        else if(){
+
+        }
+    }
     return 0;
+}
+
+struct Process make_process_entry_FCFS(int pid,int arrival_time,\
+                                    int cpu_burst,pType state){
+    //Creating the process struct
+    struct Process p1;
+    p1.pid=pid;
+    p1.arrival_time=arrival_time;
+    p1.cpu_burst=cpu_burst;
+    p1.burst_left=cpu_burst;
+    p1.state=state;
+
+    return p1;
+}
+
+void handle_arrival_event(int current_time,int *assign_pid,\
+                            vector<pair<int,int>> process_times,\
+                            vector<struct Event> &event_pq,\
+                            queue<int> &ready_queue){
+    /*
+    This function will handle the events based on this type
+    and also update the current time accordingly.
+    */
+    //Creatign the current process
+    pState state=Waiting;
+    int arrival=process_time.back().first;
+    int cpu_burst=process_times.back().second;
+    //Removing this process from the vector as its handled
+    process_times.pop_back();
+    if(CPU==-1){
+        //Assign the CPU this pid
+        CPU=*assign_pid;
+        //Since cpu is free we run this process
+        state=Running;
+        //This will now have to end sometime, thus a future event of completion
+        struct Event e1=create_event(*assign_pid,\
+                                    CPUburstComp,\
+                                    current_time+cpu_burst);
+    }
+    else{
+        //otherwise just adding the process to the ready queue
+        ready_queue.push(*assign_pid);
+    }
+    //Creating the process
+    struct Process p1=make_process_entry_FCFS(*assign_pid,arrival,cpu_burst,state);
+    //Pushing the process to the Process Table
+    process_table.push_back(p1);//it's now indexed with pid
+    //Updating the pid for next process
+    (*assign_pid)++;
+
+    //Adding the arrival event of next process
+    arrival=process_time.back().first;
+    cpu_burst=process_time.back().second;
+    if(current_time>arrival){
+        //Creating the arrival event for next process
+        struct Event
+    }
 }
