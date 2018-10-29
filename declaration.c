@@ -133,3 +133,26 @@ void bubble_sort(int size,int process_times[][2]){
         }
     }
 }
+
+//Adding the Queue related functionality
+Queue* push_to_queue(int pid,Queue *tail){
+    Queue *qu=(Queue*)malloc(sizeof(Queue));
+    qu->pid=pid;
+    qu->next=NULL;
+
+    //Now linking the new element to NULL
+    if(tail!=NULL){
+        tail->next=qu;
+        tail=qu;
+    }
+    return qu;
+}
+Queue* pop_from_queue(Queue *head){
+    //handling base case
+    if(head==NULL){
+        return NULL;
+    }
+    Queue *new_head=head->next;
+    free(head);
+    return new_head;
+}

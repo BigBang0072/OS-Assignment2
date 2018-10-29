@@ -30,3 +30,12 @@ void add_and_min_heapify(int *size,Event *new_eve,Event *event_heap[]);
 Event* pop_and_min_heapify(int *size,Event *event_heap[]);
 void read_process_file(int process_times[][2],char filename[]);
 void bubble_sort(int size,int process_times[][2]);
+
+/*                  Queue Definition                            */
+typedef struct queue{
+    int pid;            //holding the process id
+    struct queue *next;//hand to next one
+}Queue;
+
+Queue* push_to_queue(int pid,Queue *tail);
+Queue* pop_from_queue(Queue *head);
