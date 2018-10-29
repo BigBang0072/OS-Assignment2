@@ -69,29 +69,67 @@ Event* pop_and_min_heapify(int *size,Event *event_heap[]){
     return ret_eve;
 }
 
-// int main(){
-//     //Testing the push and pop operation
-//     Event e1,e2,e3,*event_heap[10];
-//     Event *e;
-//
-//     int size=-1;
-//     e1.time=15;
-//     e2.time=12;
-//     e3.time=18;
-//     add_and_min_heapify(&size,&e1,event_heap);
-//     add_and_min_heapify(&size,&e2,event_heap);
-//     add_and_min_heapify(&size,&e3,event_heap);
-//
-//     printf("%d\n",size);
-//     e=pop_and_min_heapify(&size,event_heap);
-//     printf("%d %d\n",e->time,size);
-//     e=pop_and_min_heapify(&size,event_heap);
-//     printf("%d %d\n",e->time,size);
-//     e=pop_and_min_heapify(&size,event_heap);
-//     printf("%d %d\n",e->time,size);
-//     e=pop_and_min_heapify(&size,event_heap);
-//     if(e!=NULL){
-//         printf("%d %d\n",e->time,size);
-//     }
-//     return 0;
-// }
+// Defining the file reading function
+void read_process_file(int process_times[][2],char filename[]){
+    //Opening the filepointer
+    FILE *fp;
+    printf("Reading the file\n");
+    fp=fopen(filename,"r");
+
+    //Handling bad file descriptor
+    if(fp==NULL){
+        printf("Error Reading file\n");
+        exit(0);
+    }
+    //Reading the file
+    int i=0,j=0,num=0;
+    char ch;
+    while((ch=fgetc(fp)) != EOF){
+        if(ch=='\n'){
+            process_times[i][j]=num;
+            num=0;
+            j=0;
+            i++;
+        }
+        else if(ch==','){
+            process_times[i][j]=num;
+            j++;
+            num=0;
+        }
+        else{
+            num=num*10+(ch-'0');
+        }
+    }
+    //Sorting the array in ascending order
+    bubble_sort(i,process_times);
+    for(int k=0;k<i;k++){
+        printf("%d %d\n",process_times[k][0],process_times[k][1]);
+    }
+}
+
+void bubble_sort(int size,int process_times[][2]){
+    for(int i=0;i<size-1;i++){
+        for(int j=0;j<size-1-i;j++){
+            int temp0=process_times[j][0];
+            int temp1=process_times[j][1];
+            if(process_times[j][0]==process_times[j+1][0]){
+                if(process_times[j][1]>process_times[j+1][1]){
+                    //Swapping the elements
+                    process_times[j][0]=process_times[j+1][0];
+                    process_times[j][1]=process_times[j+1][1];
+
+                    process_times[j+1][0]=temp0;
+                    process_times[j+1][1]=temp1;
+                }
+            }
+            else if(process_times[j][0]>process_times[j+1][0]){
+                //Swapping the elements
+                process_times[j][0]=process_times[j+1][0];
+                process_times[j][1]=process_times[j+1][1];
+
+                process_times[j+1][0]=temp0;
+                process_times[j+1][1]=temp1;
+            }
+        }
+    }
+}

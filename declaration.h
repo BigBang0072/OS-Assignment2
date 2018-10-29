@@ -25,5 +25,8 @@ typedef struct Event{
     int time;//time of occurance of this event
 }Event;
 
+/*                  Function Declarations                       */
 void add_and_min_heapify(int *size,Event *new_eve,Event *event_heap[]);
 Event* pop_and_min_heapify(int *size,Event *event_heap[]);
+void read_process_file(int process_times[][2],char filename[]);
+void bubble_sort(int size,int process_times[][2]);
