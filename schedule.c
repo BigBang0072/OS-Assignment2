@@ -18,6 +18,9 @@ void handle_arrival_event(int current_time,int pid,int *assign_pid,\
                             int psize,int process_times[][2],\
                             int *heap_size,Event *event_heap[],\
                             Queue **head,Queue **tail);
+void handle_incoming_new_process(int *assign_pid,\
+                                    int psize,int process_times[][2],\
+                                    int *heap_size,Event *event_heap[]);
 int schedule_like_FCFS(int psize,int process_times[][2]);
 
 
@@ -65,13 +68,13 @@ int schedule_like_FCFS(int psize,int process_times[][2]){
     printf("\nStarting the Event handling loop\n");
     while(heap_size>=0){
         printf("\n############# NEW EVENT ###################\n");
+
+        //Taking out the next event to handle
         eve=pop_and_min_heapify(&heap_size,event_heap);
         current_time=eve->time;//beware while ATAT it can go to reverse (cpucomp->arrival which came before)
+        printf("Current Sync Time:%d\n",current_time);
 
-        // int pid=eve->pid;
-        // eventType type=eve->type;
-        // int time=eve->time;
-        // printf("%d %d %d\n",pid,type,time);
+        //Handling the events
         if(eve->type==Arrival){
             handle_arrival_event(current_time,eve->pid,&assign_pid,\
                                     psize,process_times,
@@ -85,11 +88,14 @@ int schedule_like_FCFS(int psize,int process_times[][2]){
                                     &heap_size,event_heap,\
                                     &head,&tail);
         }
-        // for(int i=0;i<=heap_size;i++){
-        //
-        // }
         //Freeing up the space taken by the this event in heap
         free(eve);
+
+        //Now handling the arrival of next process (like a new node in process graph)
+        handle_incoming_new_process(&assign_pid,\
+                                    psize,process_times,\
+                                    &heap_size,event_heap);
+
     }
     return 0;
 }
@@ -149,19 +155,6 @@ void handle_arrival_event(int current_time,int pid,int *assign_pid,\
     // //Finally incrementing the pid for next process
     // *assign_pid+=1;//no need cuz we will be using the pid in event
 
-    //Now handling the arrival of next process (only if arrival left for some)
-    if(*assign_pid<psize){
-        arrival_time=process_times[*assign_pid][0];
-        //cpu_burst=process_times[*assign_pid][1];
-        if(current_time>arrival_time){
-            printf("Adding new arrival event to event heap, PID: %d\n",*assign_pid);
-            //add arrival event if this arrival time is less than the current time
-            Event* eve=create_event(*assign_pid,Arrival,arrival_time);
-            //adding the event to event heap
-            add_and_min_heapify(heap_size,eve,event_heap);
-            *assign_pid+=1;
-        }
-    }
 }
 
 void handle_burstComp_event(int *atat/*the total turn around time*/,\
@@ -170,7 +163,7 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
                             int *heap_size,Event *event_heap[],\
                             Queue **head,Queue **tail){
     //Terminating this completed event
-    printf("CPUburstCompletion of PID: %d\n",pid);
+    printf("CPUburstCompletion of PID: %d\n\n",pid);
     process_table[pid]->state=Terminated;
     //Free up the CPU_HOLDER
     CPU_HOLDER=-1;
@@ -179,6 +172,7 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
 
     //Now checking the ready queue for any other available processes
     if(*head!=NULL){//ready queue is not empty
+        printf("Fetching new process from ready Queue\n");
         //Since this was first come first serve the process in front has highest priority
         int ready_pid=(*head)->pid;
         *head=pop_from_queue(*head);
@@ -198,20 +192,54 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
         int arrival_time=process_table[ready_pid]->arrival_time;
         int cpu_burst=process_table[ready_pid]->cpu_burst;
         printf("Current Ongoing process in CPU:\n");
-        printf("pid: %d\narrival_time: %d\n",pid,arrival_time);
+        printf("pid: %d\narrival_time: %d\n",ready_pid,arrival_time);
         printf("cpu_burst_time: %d\n",cpu_burst);
         printf("state: %d\n\n",Running);
     }
-    else if(*assign_pid<psize){//since ready queue is empty then we have to handle the arrival event from
-        printf("Pushing new arrival event to the EventHeap for PID: %d\n",*assign_pid);
-        //future somewhere. so this seems the best spots.
-        int arrival_time=process_times[*assign_pid][0];
-        //int cpu_burst=process_times[*assign_pid][1];
+    // else if(*assign_pid<psize){//since ready queue is empty then we have to handle the arrival event from
+    //     printf("Pushing new arrival event to the EventHeap for PID: %d\n",*assign_pid);
+    //     //future somewhere. so this seems the best spots.
+    //     int arrival_time=process_times[*assign_pid][0];
+    //     //int cpu_burst=process_times[*assign_pid][1];
+    //
+    //     //Creating a new arrival event
+    //     Event *eve=create_event(*assign_pid,Arrival,arrival_time);
+    //     //Pushing this new event to event queue
+    //     add_and_min_heapify(heap_size,eve,event_heap);
+    //     *assign_pid+=1;
+    // }
+}
 
-        //Creating a new arrival event
-        Event *eve=create_event(*assign_pid,Arrival,arrival_time);
-        //Pushing this new event to event queue
-        add_and_min_heapify(heap_size,eve,event_heap);
-        *assign_pid+=1;
+void handle_incoming_new_process(int *assign_pid,\
+                                    int psize,int process_times[][2],\
+                                    int *heap_size,Event *event_heap[]){
+    /*Since this is FCFS the process will end once complete
+    //so, the cuurrent time will be updatad once it ends
+    //so, all the process which comes between that time need to be put
+    in the ready queue so an event generatio is needed*/
+
+    //Checking whether new next process is eligible to enter or not
+
+    if(*assign_pid<psize){
+        //Checking the arrival time of new process
+        int add_flag=1;
+        int arrival_time=process_times[*assign_pid][0];
+
+        if(*heap_size>=0){
+            //this is actuall at "could be" present current time
+            int next_event_time=event_heap[0]->time;
+            if(next_event_time<arrival_time){
+                add_flag=0;
+            }
+        }
+
+        if(add_flag==1){
+            printf("Adding new arrival event to event heap, PID: %d\n",*assign_pid);
+            //add arrival event if this arrival time is less than the current time
+            Event* eve=create_event(*assign_pid,Arrival,arrival_time);
+            //adding the event to event heap
+            add_and_min_heapify(heap_size,eve,event_heap);
+            *assign_pid+=1;
+        }
     }
 }

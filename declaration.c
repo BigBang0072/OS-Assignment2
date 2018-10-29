@@ -103,7 +103,7 @@ int read_process_file(int process_times[][2],char filename[]){
     //Sorting the array in ascending order
     bubble_sort(i,process_times);
     for(int k=0;k<i;k++){
-        printf("%d %d\n",process_times[k][0],process_times[k][1]);
+        printf("pid:%d A:%d C:%d\n",k,process_times[k][0],process_times[k][1]);
     }
     return i;//return the size upto which process arrival is there
 }
