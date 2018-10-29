@@ -24,3 +24,6 @@ typedef struct Event{
     eventType type;
     int time;//time of occurance of this event
 }Event;
+
+void add_and_min_heapify(int *size,Event *new_eve,Event *event_heap[]);
+Event* pop_and_min_heapify(int *size,Event *event_heap[]);
