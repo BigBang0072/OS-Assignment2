@@ -228,7 +228,7 @@ void handle_incoming_new_process(int *assign_pid,\
         if(*heap_size>=0){
             //this is actuall at "could be" present current time
             int next_event_time=event_heap[0]->time;
-            if(next_event_time<arrival_time){
+            if(next_event_time<=arrival_time){
                 add_flag=0;
             }
         }
