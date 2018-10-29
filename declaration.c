@@ -70,7 +70,7 @@ Event* pop_and_min_heapify(int *size,Event *event_heap[]){
 }
 
 // Defining the file reading function
-void read_process_file(int process_times[][2],char filename[]){
+int read_process_file(int process_times[][2],char filename[]){
     //Opening the filepointer
     FILE *fp;
     printf("Reading the file\n");
@@ -105,6 +105,7 @@ void read_process_file(int process_times[][2],char filename[]){
     for(int k=0;k<i;k++){
         printf("%d %d\n",process_times[k][0],process_times[k][1]);
     }
+    return i;//return the size upto which process arrival is there
 }
 
 void bubble_sort(int size,int process_times[][2]){
