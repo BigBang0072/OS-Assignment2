@@ -52,16 +52,19 @@ int schedule_like_FCFS(int psize,int process_times[][2]){
     int assign_pid=0;
     //Initializing the clock (tick-toc)
     int current_time=0;
+    //Initializing the atat varaible to hold the sum of turn around time
+    int atat=0;
 
     //Adding the seed event of first arrival
     printf("Adding the first arrival event\n");
     Event *eve=create_event(assign_pid,Arrival,process_times[assign_pid][0]);
     add_and_min_heapify(&heap_size,eve,event_heap);
-    // assign_pid++;
+    assign_pid++;
 
     //Now starting our handling of events
     printf("\nStarting the Event handling loop\n");
     while(heap_size>=0){
+        printf("\n############# NEW EVENT ###################\n");
         eve=pop_and_min_heapify(&heap_size,event_heap);
         current_time=eve->time;//beware while ATAT it can go to reverse (cpucomp->arrival which came before)
 
@@ -76,11 +79,15 @@ int schedule_like_FCFS(int psize,int process_times[][2]){
                                     &head,&tail);
         }
         else if(eve->type==CPUburstComp){
-            //handle_burstComp_event()
+            handle_burstComp_event(&atat,\
+                                    current_time,eve->pid,&assign_pid,\
+                                    psize,process_times,\
+                                    &heap_size,event_heap,\
+                                    &head,&tail);
         }
-        for(int i=0;i<=heap_size;i++){
-
-        }
+        // for(int i=0;i<=heap_size;i++){
+        //
+        // }
         //Freeing up the space taken by the this event in heap
         free(eve);
     }
@@ -165,6 +172,8 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
     //Terminating this completed event
     printf("CPUburstCompletion of PID: %d\n",pid);
     process_table[pid]->state=Terminated;
+    //Free up the CPU_HOLDER
+    CPU_HOLDER=-1;
     //Adding the time spend overall (waiting+execution)time by this process
     *atat+=(current_time-process_table[pid]->arrival_time);
 
@@ -203,5 +212,6 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
         Event *eve=create_event(*assign_pid,Arrival,arrival_time);
         //Pushing this new event to event queue
         add_and_min_heapify(heap_size,eve,event_heap);
+        *assign_pid+=1;
     }
 }
