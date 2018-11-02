@@ -42,5 +42,9 @@ Queue* pop_from_queue(Queue *head);
 
 /*                  Ready Heap Definition                       */
 //we will use the pointer of the process as the elemt of heap
+void push_to_queue(Process *proc,int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]);
+Process* pop_from_queue(int *rrSize,Process *rrQueue[],
+                        int *fcSize,Process *fcQueue[]);
 void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]);
 Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]);

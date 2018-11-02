@@ -159,6 +159,33 @@ Queue* pop_from_queue(Queue *head){
 }
 
 //Adding the priority queue for the multilevel queue
+//Queue management functions
+void push_to_queue(Process *proc,int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]){
+    //Adding the process to the appropriate queue
+    if(*proc->cpu_burst<=8){
+        add_and_maxprio_heapify_queue(rrSize,proc,rrQueue);
+    }
+    else{
+        add_and_maxprio_heapify_queue(fcSize,proc,fcQueue);
+    }
+}
+
+Process* pop_from_queue(int *rrSize,Process *rrQueue[],
+                        int *fcSize,Process *fcQueue[]){
+    /*
+    The round robin queue has the higher priority than
+    the first come first serve queue.
+    */
+    if(*rrSize!=-1){
+        return pop_and_maxprio_heapify_queue(rrSize,rrQueue);
+    }
+    else{
+        //will return NULL if the heap is empty. handle appropriately
+        return pop_and_maxprio_heapify_queue(fcSize,fcQueue);
+    }
+}
+//Heapify related function
 void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]){
     /*
         We are going with the two heap approach for the

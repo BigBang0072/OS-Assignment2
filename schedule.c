@@ -231,6 +231,17 @@ void handle_incoming_new_process(int *assign_pid,\
 }
 
 /*                       Multilevel Schedular              */
-int schedule_like_Multilevel(){
-    /**/
+//Ready-Queue Manager
+
+//Main handler for the scheduling
+int schedule_like_Multilevel(int psize,int process_times[][2]){
+    /*
+    This function will schedule the precess using the
+    multilevel queue and calculate the average turnaround time.
+    */
+    //Initializing the two queues for multilevel handling
+
+    int rrSize=-1,fcSize=-1;//initial size of the heap
+    Process* rrQueue[max_process],fcQueue[max_process];
+    
 }
