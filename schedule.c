@@ -31,8 +31,11 @@ int main(){
     int psize=read_process_file(process_times,filename);
 
 
-    printf("Starting the scheduling procedure\n");
+    printf("Starting the FCFS scheduling procedure\n");
     schedule_like_FCFS(psize,process_times);
+
+    printf("Starting the Multilevel- Queue Procedure\n");
+
 
     return 0;
 }
@@ -152,11 +155,7 @@ void handle_arrival_event(int current_time,int pid,int *assign_pid,\
             *head=*tail;
         }
     }
-    // //Finally incrementing the pid for next process
-    // *assign_pid+=1;//no need cuz we will be using the pid in event
-
 }
-
 void handle_burstComp_event(int *atat/*the total turn around time*/,\
                             int current_time,int pid,int *assign_pid,\
                             int psize,int process_times[][2],
@@ -196,20 +195,7 @@ void handle_burstComp_event(int *atat/*the total turn around time*/,\
         printf("cpu_burst_time: %d\n",cpu_burst);
         printf("state: %d\n\n",Running);
     }
-    // else if(*assign_pid<psize){//since ready queue is empty then we have to handle the arrival event from
-    //     printf("Pushing new arrival event to the EventHeap for PID: %d\n",*assign_pid);
-    //     //future somewhere. so this seems the best spots.
-    //     int arrival_time=process_times[*assign_pid][0];
-    //     //int cpu_burst=process_times[*assign_pid][1];
-    //
-    //     //Creating a new arrival event
-    //     Event *eve=create_event(*assign_pid,Arrival,arrival_time);
-    //     //Pushing this new event to event queue
-    //     add_and_min_heapify(heap_size,eve,event_heap);
-    //     *assign_pid+=1;
-    // }
 }
-
 void handle_incoming_new_process(int *assign_pid,\
                                     int psize,int process_times[][2],\
                                     int *heap_size,Event *event_heap[]){
@@ -242,4 +228,9 @@ void handle_incoming_new_process(int *assign_pid,\
             *assign_pid+=1;
         }
     }
+}
+
+/*                       Multilevel Schedular              */
+int schedule_like_Multilevel(){
+    /**/
 }

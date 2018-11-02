@@ -7,11 +7,11 @@ typedef struct Process{
     //process info
     int arrival_time;
     int cpu_burst;
-    char sched_policy;
+    char sched_policy;//R: level1 > F:level2
 
     //process state info
     pState state;
-    int burst_left;
+    int num_burst_taken;//number of burst taken, so, this should be discarded in RR
     int time_quanta;
     int preemption;
 }Process;
@@ -39,3 +39,6 @@ typedef struct queue{
 
 Queue* push_to_queue(int pid,Queue *tail);
 Queue* pop_from_queue(Queue *head);
+
+/*                  Ready Heap Definition                       */
+//we will use the pointer of the process as the elemt of heap

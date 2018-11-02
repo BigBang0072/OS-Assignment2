@@ -157,3 +157,92 @@ Queue* pop_from_queue(Queue *head){
     free(head);
     return new_head;
 }
+
+//Adding the priority queue for the multilevel queue
+void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]){
+    //Incrementing the size of the heap
+    *size+=1;
+    //Appending the new process to the end
+    ready_heap[*size]=newP;
+
+    //Now its time to heapify the whole heap
+    int idx=*size;
+    while(idx>=1){
+        //Getting the parent index
+        int pidx=(idx-1)/2;
+        //Retreiving the process pointer for ease
+        Process *child=ready_heap[idx];
+        Process *parent=ready_heap[pidx];
+
+        //Now we have to test the one with higher priority stay up
+        if(child->sched_policy=='R' && parent->sched_policy=='F'){
+            ready_heap[idx]=parent;
+            ready_heap[pidx]=child;
+            idx=pidx;
+        }
+        else{
+            break;
+        }
+        // else if(child->sched_policy=='C' && parent->sched_policy=='C'){
+        //     //still this will like queue for them (so they have to follow the order)
+        // }
+        // else if(child->sched_policy=='F'){//both are FCFS
+        //     //it will automatically should be low prioty cuz coming later
+        // }
+    }
+
+    //The heap will always look like (Proved that F can only come on top if no R is there)
+    //[R,R,R,R....][F,F,F,F.....] and internally they are like a queue
+}
+
+Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
+    //Handling the base case
+    if(*size==-1){
+        return NULL;
+    }
+
+    //Now takin out the maximum priority case
+    Process *ret_proc=ready_heap[0];
+    //Now bringing the last element to front
+    ready_heap[0]=ready_heap[*size];
+    //Decrementing the size of heap
+    *size-=1;
+
+    //Now we have to heapify (ensure that only the max prio is at top)
+    int idx=0;
+    while(idx<*size-1){
+        //Getting the children index
+        int cidx1=2*idx+1;
+        int cidx2=2*idx+2;
+
+        int maxcidx=-1;
+        int minval=-1;
+
+        //Now checking if the swap is needed or not
+        if(ready_heap[idx]->sched_policy=='R'){
+            if(ready_heap[cidx1]->sched_policy=='R' &&\
+                ready_heap[cidx1]->num_burst_taken<ready_heap[idx]->num_burst_taken){
+                //Selecting this process
+                maxcidx=cidx1;
+                minval=ready_heap[cidx1]->num_burst_taken;
+            }
+            if(ready_heap[cidx2]->sched_policy=='R' &&\
+                ready_heap[cidx2]->num_burst_taken<minval){
+                //
+                maxcidx=cidx2;
+                minval=ready_heap[cidx2]->num_burst_taken;
+            }
+        }
+        else{
+            if(ready_heap[cidx1]->sched_policy=='R'){
+                mincidx=cidx1;
+                minval=ready_heap[cidx1]->num_burst_taken;
+            }
+            else if(ready_heap[cidx1]->arrival_time<ready_heap[idx]->arrival_time){
+                mincidx=cidx1;
+                minval=ready_heap[cidx1]->arrival_time;
+            }
+            if()
+        }
+    }
+}
