@@ -42,9 +42,9 @@ Event* pop_and_min_heapify(int *size,Event *event_heap[]){
     while(idx<*size){
         int cidx1=2*idx+1;
         int cidx2=2*idx+2;
-        int min=INT_MAX;
+        int min=event_heap[idx]->time;
         int mincidx=-1;
-        if(cidx1<=*size && event_heap[idx]->time>event_heap[cidx1]->time){
+        if(cidx1<=*size && min>event_heap[cidx1]->time){
             mincidx=cidx1;
             min=event_heap[cidx1]->time;
         }
@@ -160,6 +160,12 @@ Queue* pop_from_queue(Queue *head){
 
 //Adding the priority queue for the multilevel queue
 void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]){
+    /*
+        We are going with the two heap approach for the
+        implementation of multilevel queue.
+        So, check for priority among the two queues
+        while using.
+    */
     //Incrementing the size of the heap
     *size+=1;
     //Appending the new process to the end
@@ -173,9 +179,24 @@ void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]
         //Retreiving the process pointer for ease
         Process *child=ready_heap[idx];
         Process *parent=ready_heap[pidx];
+        int swap_flag=0;
 
-        //Now we have to test the one with higher priority stay up
-        if(child->sched_policy=='R' && parent->sched_policy=='F'){
+        //whoever has arrived forst will stay up in heap
+        if(child->num_burst_taken < parent->num_burst_taken){
+            swap_flag=1;
+        }
+        else if(child->num_burst_taken==parent->num_burst_taken && \
+                child->arrival_time < parent->arrival_time){
+            swap_flag=1;
+        }
+        else if(child->num_burst_taken==parent->num_burst_taken &&\
+                child->arrival_time == parent->arrival_time &&\
+                child->pid < parent->pid){
+            swap_flag=1;
+        }
+
+        if(swap_flag==1){
+            //Swapping the place
             ready_heap[idx]=parent;
             ready_heap[pidx]=child;
             idx=pidx;
@@ -183,16 +204,7 @@ void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]
         else{
             break;
         }
-        // else if(child->sched_policy=='C' && parent->sched_policy=='C'){
-        //     //still this will like queue for them (so they have to follow the order)
-        // }
-        // else if(child->sched_policy=='F'){//both are FCFS
-        //     //it will automatically should be low prioty cuz coming later
-        // }
     }
-
-    //The heap will always look like (Proved that F can only come on top if no R is there)
-    //[R,R,R,R....][F,F,F,F.....] and internally they are like a queue
 }
 
 Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
@@ -216,33 +228,61 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
         int cidx2=2*idx+2;
 
         int maxcidx=-1;
-        int minval=-1;
+        int minvalB=ready_heap[idx]->num_burst_taken;
+        int minvalT=ready_heap[idx]->arrival_time;
 
         //Now checking if the swap is needed or not
-        if(ready_heap[idx]->sched_policy=='R'){
-            if(ready_heap[cidx1]->sched_policy=='R' &&\
-                ready_heap[cidx1]->num_burst_taken<ready_heap[idx]->num_burst_taken){
-                //Selecting this process
+        if(cidx1<*size && ready_heap[cidx1]->num_burst_taken < minvalB){
+            maxcidx=cidx1;
+            minvalB=ready_heap[cidx1]->num_burst_taken;
+            minvalT=ready_heap[cidx1]->arrival_time;
+        }
+        else if(cidx1<*size && ready_heap[cidx1]->num_burst_taken==minvalB &&\
+                ready_heap[cidx1]->arrival_time < minvalT){
+            //if the burst taken is same but the child arrivaed earlier
+            maxcidx=cidx1;
+            minvalT=ready_heap[cidx1]->arrival_time;
+        }
+
+        //Checking the second children
+        if(cidx2<*size && ready_heap[cidx2]->num_burst_taken < minvalB){
+            maxcidx=cidx2;
+            // minvalB=ready_heap[cidx2]->num_burst_taken;
+            // minvalT=ready_heap[cidx2]->arrival_time;
+        }
+        else if(cidx2<*size && ready_heap[cidx2]->num_burst_taken==minvalB &&\
+                ready_heap[cidx2]->arrival_time < minvalT){
+            maxcidx=cidx2;
+        }
+
+        //if the children are equi-likely
+        if(cidx1<*size && cidx2<*size &&\
+            ready_heap[cidx1]->num_burst_taken==ready_heap[cidx2]->num_burst_taken &&\
+            ready_heap[cidx1]->arrival_time==ready_heap[cidx2]->arrival_time){
+
+            //Now choosing the the process with lower pid
+            if(ready_heap[cidx1]->pid<ready_heap[cidx2]->pid){
                 maxcidx=cidx1;
-                minval=ready_heap[cidx1]->num_burst_taken;
             }
-            if(ready_heap[cidx2]->sched_policy=='R' &&\
-                ready_heap[cidx2]->num_burst_taken<minval){
-                //
+            else{
                 maxcidx=cidx2;
-                minval=ready_heap[cidx2]->num_burst_taken;
             }
+        }
+
+        //Now making the swap if applicable
+        if(maxcidx!=-1){
+            Process* temp=ready_heap[idx];
+            ready_heap[idx]=ready_heap[maxcidx];
+            ready_heap[maxcidx]=temp;
+
+            //redoing the problem for the children now
+            idx=maxcidx;
         }
         else{
-            if(ready_heap[cidx1]->sched_policy=='R'){
-                mincidx=cidx1;
-                minval=ready_heap[cidx1]->num_burst_taken;
-            }
-            else if(ready_heap[cidx1]->arrival_time<ready_heap[idx]->arrival_time){
-                mincidx=cidx1;
-                minval=ready_heap[cidx1]->arrival_time;
-            }
-            if()
+            break;
         }
     }
+
+    //Retruning the maximum priority process
+    return ret_proc;
 }
