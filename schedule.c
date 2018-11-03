@@ -31,7 +31,14 @@ void handle_arrival_event_MUL(int current_time,int pid,\
                             int *eveSize,Event* event_heap[],\
                             int *rrSize,Process* rrQueue[],\
                             int *fcSize,Process* fcQueue[]);
-//
+void handle_timeout_event_MUL(int current_time,int pid,\
+                                int *eveSize,Event *event_heap[],\
+                                int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]);
+void handle_burstComp_event_MUL(int current_time,int pid,\
+                                int *eveSize,Event *event_heap[],\
+                                int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]);
 
 int main(){
     //Reading the process times from the txt file
@@ -341,9 +348,9 @@ void print_process_info(Process *proc){
 }
 
 void assign_process_to_cpu(int current_time,\
-                            int *eveSize,Event *event_heap,\
-                            int *rrSize,Process *rrQueue,\
-                            int *fcSize,Process *fcQueue){
+                            int *eveSize,Event *event_heap[],\
+                            int *rrSize,Process *rrQueue[],\
+                            int *fcSize,Process *fcQueue[]){
     //Assigning a new process to the CPU based on the condition of ready Queue
     //Fetching out a process from the queue
     Process *rproc=pop_from_Mqueue(rrSize,rrQueue,fcSize,fcQueue);
@@ -351,7 +358,7 @@ void assign_process_to_cpu(int current_time,\
     if(rproc==NULL){
         return;//nothing to do
     }
-    printf("Assigning a new process to CPU with pid: %d\n"rproc->pid);
+    printf("Assigning a new process to CPU with pid: %d\n",rproc->pid);
 
     //Adding the process based on the event type
     if (rproc->sched_policy=='R'){//round robin
@@ -366,7 +373,7 @@ void assign_process_to_cpu(int current_time,\
         //Creating a time out event for the RR process
         //(handle completion in timeout event)
         Event *eve=create_event(rproc->pid,TimerExpired,\
-                                current_time+time_quanta)
+                                current_time+time_quanta);
         //Adding the event to event queue
         add_and_min_heapify(eveSize,eve,event_heap);
 
@@ -426,7 +433,7 @@ void handle_arrival_event_MUL(int current_time,int pid,\
     }
 }
 void handle_timeout_event_MUL(int current_time,int pid,\
-                                int *eveSize,Event *event_heap,\
+                                int *eveSize,Event *event_heap[],\
                                 int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]){
     /*
@@ -456,9 +463,9 @@ void handle_timeout_event_MUL(int current_time,int pid,\
 
 }
 void handle_burstComp_event_MUL(int current_time,int pid,\
-                                int *eveSize,Event *event_heap,\
-                                int *rrSize,Process *rrQueue,\
-                                int *fcSize,Process *fcQueue){
+                                int *eveSize,Event *event_heap[],\
+                                int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]){
     /*
     This function will handle the burst completion event
     for the FCFS processes since the RR process will be handled automatically
