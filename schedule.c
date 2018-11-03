@@ -321,6 +321,11 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
         handle_incoming_new_process(&assign_pid,\
                                     psize,process_times,\
                                     &eveSize,event_heap);
+
+        for(int i=0;i<=rrSize;i++){
+            printf("%d\n",rrQueue[i]->pid);
+        }
+        printf("\n");
     }
 
     //Printing the atat time

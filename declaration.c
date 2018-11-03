@@ -255,7 +255,7 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
 
     //Now we have to heapify (ensure that only the max prio is at top)
     int idx=0;
-    while(idx<*size-1){
+    while(idx<=*size){
         //Getting the children index
         int cidx1=2*idx+1;
         int cidx2=2*idx+2;
