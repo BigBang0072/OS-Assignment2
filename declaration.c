@@ -165,10 +165,14 @@ void push_to_Mqueue(Process *proc,int *rrSize,Process *rrQueue[],\
     //Adding the process to the appropriate queue
     if(proc->cpu_burst<=8){
         printf("Adding the process:%d to RR Queue\n",proc->pid);
+        //Specifying the scheduling policy
+        proc->sched_policy='R';//round-robin
         add_and_maxprio_heapify_queue(rrSize,proc,rrQueue);
     }
     else{
         printf("Adding the process:%d to FCFS Queue\n",proc->pid);
+        //Specifying the scheduling policy
+        proc->sched_policy='F';//first come cirst serve
         add_and_maxprio_heapify_queue(fcSize,proc,fcQueue);
     }
 }

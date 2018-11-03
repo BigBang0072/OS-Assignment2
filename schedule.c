@@ -26,7 +26,12 @@ void handle_incoming_new_process(int *assign_pid,\
 int schedule_like_FCFS(int psize,int process_times[][2]);
 //Multi-level Schedular queue
 int schedule_like_Multilevel(int psize,int process_times[][2]);
-
+void handle_arrival_event_MUL(int current_time,int pid,\
+                            int process_times[][2],\
+                            int *eveSize,Event* event_heap[],\
+                            int *rrSize,Process* rrQueue[],\
+                            int *fcSize,Process* fcQueue[]);
+//
 
 int main(){
     //Reading the process times from the txt file
@@ -235,6 +240,73 @@ void handle_incoming_new_process(int *assign_pid,\
 }
 
 /*                       Multilevel Schedular              */
+
+//Main handler for the scheduling
+int schedule_like_Multilevel(int psize,int process_times[][2]){
+    /*
+    This function will schedule the precess using the
+    multilevel queue and calculate the average turnaround time.
+    */
+    //Initializing the two queues for multilevel handling
+    int rrSize=-1,fcSize=-1;//initial size of the heap
+    Process *rrQueue[max_process],*fcQueue[max_process];
+
+    //initilaizing the Event heap
+    int eveSize=-1;
+    Event *event_heap[max_events];
+
+    //Initializing the initial pid,current time and the atat variable
+    int assign_pid=0;
+    int current_time=0;
+    int atat=0;
+
+    //Adding the arrival event for the first process to start Shree Ganesh
+    printf("Adding the first arrival event to Event Heap\n");
+    Event *eve=create_event(assign_pid,Arrival,process_times[assign_pid][0]);
+    add_and_min_heapify(&eveSize,eve,event_heap);
+    assign_pid++;
+
+    //Starting the event handling loop
+    printf("Starting the event handling loop\n");
+    while(eveSize>=0){
+        printf("\n############# NEW EVENT ###################\n");
+
+        //Taking out the next event to handle
+        eve=pop_and_min_heapify(&eveSize,event_heap);
+        current_time=eve->time;
+        printf("Current Sync Time:%d\n",current_time);
+
+        if(eve->type==Arrival){
+            handle_arrival_event_MUL(current_time,eve->pid,\
+                                    process_times,\
+                                    &eveSize,event_heap,\
+                                    &rrSize,rrQueue,\
+                                    &fcSize,fcQueue);
+        }
+        else if(eve->type==CPUburstComp){
+            handle_burstComp_event_MUL(current_time,eve->pid,\
+                                    &eveSize,event_heap,\
+                                    &rrSize,rrQueue,\
+                                    &fcSize,fcQueue);
+        }
+        else if(eve->type==TimerExpired){
+            handle_timeout_event_MUL(current_time,eve->pid,\
+                                    &eveSize,event_heap,\
+                                    &rrSize,rrQueue,\
+                                    &fcSize,fcQueue);
+        }
+
+        //freeing up the space for this event
+        free(eve);
+
+        //Handling the arrival of new process in the meantime
+        handle_incoming_new_process(&assign_pid,\
+                                    psize,process_times,\
+                                    &eveSize,event_heap);
+    }
+
+    return 0;
+}
 Process *make_process_entry_MUL(int pid,\
                                 int arrival_time,\
                                 int cpu_burst,\
@@ -258,41 +330,147 @@ Process *make_process_entry_MUL(int pid,\
 
     return proc;
 }
-
-void print_process(Process *proc){
+void print_process_info(Process *proc){
     printf("pid: %d\n",proc->pid);
     printf("arrival_time: %d\n",proc->arrival_time);
     printf("cpu_burst: %d\n",proc->cpu_burst);
     printf("burst_left: %d\n",proc->burst_left);
     printf("burst_taken: %d\n",proc->num_burst_taken);
     printf("time_quanta: %d\n",proc->time_quanta);
+    printf("state: (0:Running,1:Waiting) %d\n",proc->state);
 }
 
-//Main handler for the scheduling
-int schedule_like_Multilevel(int psize,int process_times[][2]){
+void assign_process_to_cpu(int current_time,\
+                            int *eveSize,Event *event_heap,\
+                            int *rrSize,Process *rrQueue,\
+                            int *fcSize,Process *fcQueue){
+    //Assigning a new process to the CPU based on the condition of ready Queue
+    //Fetching out a process from the queue
+    Process *rproc=pop_from_Mqueue(rrSize,rrQueue,fcSize,fcQueue);
+    //Handling the empty queue
+    if(rproc==NULL){
+        return;//nothing to do
+    }
+    printf("Assigning a new process to CPU with pid: %d\n"rproc->pid);
+
+    //Adding the process based on the event type
+    if (rproc->sched_policy=='R'){//round robin
+        //Giving the access of the CPU to the process
+        CPU_HOLDER=rproc->pid;
+
+        //Updating the status of the process
+        rproc->state=Running;
+        rproc->num_burst_taken+=1;
+        rproc->burst_left-=time_quanta;//if 0 or -ve done
+
+        //Creating a time out event for the RR process
+        //(handle completion in timeout event)
+        Event *eve=create_event(rproc->pid,TimerExpired,\
+                                current_time+time_quanta)
+        //Adding the event to event queue
+        add_and_min_heapify(eveSize,eve,event_heap);
+
+        //Printing the process information
+        print_process_info(rproc);
+    }
+    else if(rproc->sched_policy=='F'){
+        //Handling the FCFS process (once started cannot expire)
+        //Giving the access to the CPU about process
+        CPU_HOLDER=rproc->pid;
+
+        //Updating the status of the process
+        rproc->state=Running;
+        rproc->num_burst_taken+=1;
+        rproc->burst_left=0;//after this burst
+
+        //Creating the completion event for this process
+        Event *eve=create_event(rproc->pid,CPUburstComp,\
+                                current_time+rproc->cpu_burst);
+        //Adding the event to event queue
+        add_and_min_heapify(eveSize,eve,event_heap);
+
+        //printing the process info
+        print_process_info(rproc);
+    }
+}
+void handle_arrival_event_MUL(int current_time,int pid,\
+                            int process_times[][2],\
+                            int *eveSize,Event* event_heap[],\
+                            int *rrSize,Process* rrQueue[],\
+                            int *fcSize,Process* fcQueue[]){
+    //Creating the new process as an welcome to new kid
+    printf("Handling the arrival of new process:%d\n",pid);
+    pState state=Waiting;//let is be in waiting until we decide the fate later
+    int num_burst_taken=0;
+    //Creating the process varaible
+    Process *proc=make_process_entry_MUL(pid,\
+                                        process_times[pid][0],\
+                                        process_times[pid][1],\
+                                        state,\
+                                        num_burst_taken,\
+                                        time_quanta);
+    //Adding the process to the process queue
+    process_table[pid]=proc;
+
+    //Adding the process to the ready Queue and let the manager decide priority
+    push_to_Mqueue(proc,rrSize,rrQueue,fcSize,fcQueue);
+
+    //Now handling the fate of the process (run to to ready queue)
+    if(CPU_HOLDER==-1){//Cpu is free
+        //Assigning a process to the CPU
+        assign_process_to_cpu(current_time,eveSize,event_heap,\
+                                rrSize,rrQueue,fcSize,fcQueue);
+    }
+    else{
+        printf("CPU Busy adding the process to the Queue\n");
+    }
+}
+void handle_timeout_event_MUL(int current_time,int pid,\
+                                int *eveSize,Event *event_heap,\
+                                int *rrSize,Process *rrQueue[],\
+                                int *fcSize,Process *fcQueue[]){
     /*
-    This function will schedule the precess using the
-    multilevel queue and calculate the average turnaround time.
+    This function will handle the timeout event for the round robin
+    processes. Since they have to be switched every time quanta.
     */
-    //Initializing the two queues for multilevel handling
+    //getting the process info-pointer from process table
+    Process *proc=process_table[pid];
+    //Freeing the status of the CPU
+    CPU_HOLDER=-1;
 
-    int rrSize=-1,fcSize=-1;//initial size of the heap
-    Process *rrQueue[max_process],*fcQueue[max_process];
-
-    //Testig the heap
-    for(int i=0;i<psize;i++){
-        Process *proc=make_process_entry_MUL(i,process_times[i][0],\
-                                                process_times[i][1],\
-                                                Waiting,1,time_quanta);
-        push_to_Mqueue(proc,&rrSize,rrQueue,&fcSize,fcQueue);
+    //Checking if the work completed or still left
+    if(proc->burst_left<=0){//work done
+        //Terminating the process
+        proc->state=Terminated;
     }
-    //Taking out the element
-    for(int i=0;i<psize;i++){
-        //Pring the element in the queue
-        Process *proc=pop_from_Mqueue(&rrSize,rrQueue,&fcSize,fcQueue);
-        print_process(proc);
-        printf("\n");
+    else{//not over yet (still left to be done)
+        //Changing the state of the process
+        proc->state=Waiting;
+        //Pushing the process to the queue (for their next turn)
+        push_to_Mqueue(proc,rrSize,rrQueue,fcSize,fcQueue);
     }
+    //Assigning a new process to cpu (if availble now internally)
+    printf("Doing the context Switching after time out\n");
+    assign_process_to_cpu(current_time,eveSize,event_heap,\
+                            rrSize,rrQueue,fcSize,fcQueue);
 
-    return 0;
+}
+void handle_burstComp_event_MUL(int current_time,int pid,\
+                                int *eveSize,Event *event_heap,\
+                                int *rrSize,Process *rrQueue,\
+                                int *fcSize,Process *fcQueue){
+    /*
+    This function will handle the burst completion event
+    for the FCFS processes since the RR process will be handled automatically
+    */
+    //Getting the porcess info-pointer from the process table
+    Process *proc=process_table[pid];
+    //Freeing up the CPU
+    CPU_HOLDER=-1;
+    proc->state=Terminated;
+
+    //Now assigning the new process to the CPU
+    printf("CPU burst completed for pid:%d\n",pid);
+    assign_process_to_cpu(current_time,eveSize,event_heap,\
+                            rrSize,rrQueue,fcSize,fcQueue);
 }
