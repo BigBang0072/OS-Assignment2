@@ -160,18 +160,20 @@ Queue* pop_from_queue(Queue *head){
 
 //Adding the priority queue for the multilevel queue
 //Queue management functions
-void push_to_queue(Process *proc,int *rrSize,Process *rrQueue[],\
+void push_to_Mqueue(Process *proc,int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]){
     //Adding the process to the appropriate queue
-    if(*proc->cpu_burst<=8){
+    if(proc->cpu_burst<=8){
+        printf("Adding the process:%d to RR Queue\n",proc->pid);
         add_and_maxprio_heapify_queue(rrSize,proc,rrQueue);
     }
     else{
+        printf("Adding the process:%d to FCFS Queue\n",proc->pid);
         add_and_maxprio_heapify_queue(fcSize,proc,fcQueue);
     }
 }
 
-Process* pop_from_queue(int *rrSize,Process *rrQueue[],
+Process* pop_from_Mqueue(int *rrSize,Process *rrQueue[],
                         int *fcSize,Process *fcQueue[]){
     /*
     The round robin queue has the higher priority than
@@ -259,12 +261,12 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
         int minvalT=ready_heap[idx]->arrival_time;
 
         //Now checking if the swap is needed or not
-        if(cidx1<*size && ready_heap[cidx1]->num_burst_taken < minvalB){
+        if(cidx1<=*size && ready_heap[cidx1]->num_burst_taken < minvalB){
             maxcidx=cidx1;
             minvalB=ready_heap[cidx1]->num_burst_taken;
             minvalT=ready_heap[cidx1]->arrival_time;
         }
-        else if(cidx1<*size && ready_heap[cidx1]->num_burst_taken==minvalB &&\
+        else if(cidx1<=*size && ready_heap[cidx1]->num_burst_taken==minvalB &&\
                 ready_heap[cidx1]->arrival_time < minvalT){
             //if the burst taken is same but the child arrivaed earlier
             maxcidx=cidx1;
@@ -272,18 +274,18 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
         }
 
         //Checking the second children
-        if(cidx2<*size && ready_heap[cidx2]->num_burst_taken < minvalB){
+        if(cidx2<=*size && ready_heap[cidx2]->num_burst_taken < minvalB){
             maxcidx=cidx2;
             // minvalB=ready_heap[cidx2]->num_burst_taken;
             // minvalT=ready_heap[cidx2]->arrival_time;
         }
-        else if(cidx2<*size && ready_heap[cidx2]->num_burst_taken==minvalB &&\
+        else if(cidx2<=*size && ready_heap[cidx2]->num_burst_taken==minvalB &&\
                 ready_heap[cidx2]->arrival_time < minvalT){
             maxcidx=cidx2;
         }
 
         //if the children are equi-likely
-        if(cidx1<*size && cidx2<*size &&\
+        if(cidx1<=*size && cidx2<=*size &&\
             ready_heap[cidx1]->num_burst_taken==ready_heap[cidx2]->num_burst_taken &&\
             ready_heap[cidx1]->arrival_time==ready_heap[cidx2]->arrival_time){
 

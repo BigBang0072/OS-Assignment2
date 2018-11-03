@@ -5,10 +5,12 @@
 //Global Variables
 #define max_process 50
 #define max_events 1000
+const int  time_quanta=4;
 Process *process_table[max_process];//will have the array for all the processes
 int CPU_HOLDER=-1;//which process is holding the current CPU
 
 //Function Declaration
+//First Come first serve queue
 void handle_burstComp_event(int *atat/*the total turn around time*/,\
                             int current_time,int pid,int *assign_pid,\
                             int psize,int process_times[][2],
@@ -22,6 +24,8 @@ void handle_incoming_new_process(int *assign_pid,\
                                     int psize,int process_times[][2],\
                                     int *heap_size,Event *event_heap[]);
 int schedule_like_FCFS(int psize,int process_times[][2]);
+//Multi-level Schedular queue
+int schedule_like_Multilevel(int psize,int process_times[][2]);
 
 
 int main(){
@@ -32,10 +36,10 @@ int main(){
 
 
     printf("Starting the FCFS scheduling procedure\n");
-    schedule_like_FCFS(psize,process_times);
+    //schedule_like_FCFS(psize,process_times);
 
     printf("Starting the Multilevel- Queue Procedure\n");
-
+    schedule_like_Multilevel(psize,process_times);
 
     return 0;
 }
@@ -231,7 +235,38 @@ void handle_incoming_new_process(int *assign_pid,\
 }
 
 /*                       Multilevel Schedular              */
-//Ready-Queue Manager
+Process *make_process_entry_MUL(int pid,\
+                                int arrival_time,\
+                                int cpu_burst,\
+                                pState state,\
+                                int num_burst_taken,
+                                int time_quanta){
+    //Creating the process entry with elements specialized for
+    //he multilevel queue scheduling.
+
+    //Allocating the memory
+    Process *proc=(Process *)malloc(sizeof(Process));
+
+    //Filling the process details
+    proc->pid=pid;
+    proc->arrival_time=arrival_time;
+    proc->cpu_burst=cpu_burst;
+    proc->burst_left=cpu_burst;
+    proc->state=state;
+    proc->num_burst_taken=num_burst_taken;
+    proc->time_quanta=time_quanta;
+
+    return proc;
+}
+
+void print_process(Process *proc){
+    printf("pid: %d\n",proc->pid);
+    printf("arrival_time: %d\n",proc->arrival_time);
+    printf("cpu_burst: %d\n",proc->cpu_burst);
+    printf("burst_left: %d\n",proc->burst_left);
+    printf("burst_taken: %d\n",proc->num_burst_taken);
+    printf("time_quanta: %d\n",proc->time_quanta);
+}
 
 //Main handler for the scheduling
 int schedule_like_Multilevel(int psize,int process_times[][2]){
@@ -242,6 +277,22 @@ int schedule_like_Multilevel(int psize,int process_times[][2]){
     //Initializing the two queues for multilevel handling
 
     int rrSize=-1,fcSize=-1;//initial size of the heap
-    Process* rrQueue[max_process],fcQueue[max_process];
-    
+    Process *rrQueue[max_process],*fcQueue[max_process];
+
+    //Testig the heap
+    for(int i=0;i<psize;i++){
+        Process *proc=make_process_entry_MUL(i,process_times[i][0],\
+                                                process_times[i][1],\
+                                                Waiting,1,time_quanta);
+        push_to_Mqueue(proc,&rrSize,rrQueue,&fcSize,fcQueue);
+    }
+    //Taking out the element
+    for(int i=0;i<psize;i++){
+        //Pring the element in the queue
+        Process *proc=pop_from_Mqueue(&rrSize,rrQueue,&fcSize,fcQueue);
+        print_process(proc);
+        printf("\n");
+    }
+
+    return 0;
 }

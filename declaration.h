@@ -11,6 +11,7 @@ typedef struct Process{
 
     //process state info
     pState state;
+    int burst_left;//to know how much burst is left for the process
     int num_burst_taken;//number of burst taken, so, this should be discarded in RR
     int time_quanta;
     int preemption;
@@ -42,9 +43,9 @@ Queue* pop_from_queue(Queue *head);
 
 /*                  Ready Heap Definition                       */
 //we will use the pointer of the process as the elemt of heap
-void push_to_queue(Process *proc,int *rrSize,Process *rrQueue[],\
+void push_to_Mqueue(Process *proc,int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]);
-Process* pop_from_queue(int *rrSize,Process *rrQueue[],
+Process* pop_from_Mqueue(int *rrSize,Process *rrQueue[],
                         int *fcSize,Process *fcQueue[]);
 void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]);
 Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]);
