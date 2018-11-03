@@ -257,30 +257,42 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
 
         int maxcidx=-1;
         int minvalT=ready_heap[idx]->last_arrival_time;
+        int minvalP=ready_heap[idx]->pid;
 
         //Now checking if the swap is needed or not
         if(cidx1<=*size && ready_heap[cidx1]->last_arrival_time < minvalT){
             maxcidx=cidx1;
             minvalT=ready_heap[cidx1]->last_arrival_time;
+            minvalP=ready_heap[cidx1]->pid;
+        }
+        else if(cidx1<=*size && ready_heap[cidx1]->last_arrival_time == minvalT &&\
+                ready_heap[cidx1]->pid<minvalP){
+            maxcidx=cidx1;
+            minvalP=ready_heap[cidx1]->pid;
         }
 
         //Checking the second children
         if(cidx2<=*size && ready_heap[cidx2]->last_arrival_time < minvalT){
             maxcidx=cidx2;
         }
-
-        //if the children are equi-likely
-        if(maxcidx!=-1 && cidx1<=*size && cidx2<=*size &&\
-            ready_heap[cidx1]->last_arrival_time==ready_heap[cidx2]->last_arrival_time){
-
-            //Now choosing the the process with lower pid
-            if(ready_heap[cidx1]->pid<ready_heap[cidx2]->pid){
-                maxcidx=cidx1;
-            }
-            else{
-                maxcidx=cidx2;
-            }
+        else if(cidx2<=*size && ready_heap[cidx2]->last_arrival_time == minvalT &&\
+                ready_heap[cidx2]->pid<minvalP){
+            maxcidx=cidx2;
         }
+
+        // //if the children are equi-likely
+        // if(cidx1<=*size && cidx2<=*size &&\
+        //     ready_heap[cidx1]->last_arrival_time==minvalT &&\
+        //     ready_heap[cidx1]->last_arrival_time==ready_heap[cidx2]->last_arrival_time){
+        //
+        //     //Now choosing the the process with lower pid
+        //     if(ready_heap[cidx1]->pid<ready_heap[cidx2]->pid){
+        //         maxcidx=cidx1;
+        //     }
+        //     else{
+        //         maxcidx=cidx2;
+        //     }
+        // }
 
         //Now making the swap if applicable
         if(maxcidx!=-1){
