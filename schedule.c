@@ -23,19 +23,19 @@ void handle_arrival_event(int current_time,int pid,int *assign_pid,\
 void handle_incoming_new_process(int *assign_pid,\
                                     int psize,int process_times[][2],\
                                     int *heap_size,Event *event_heap[]);
-int schedule_like_FCFS(int psize,int process_times[][2]);
+float schedule_like_FCFS(int psize,int process_times[][2]);
 //Multi-level Schedular queue
-int schedule_like_Multilevel(int psize,int process_times[][2]);
+float schedule_like_Multilevel(int psize,int process_times[][2]);
 void handle_arrival_event_MUL(int current_time,int pid,\
                             int process_times[][2],\
                             int *eveSize,Event* event_heap[],\
                             int *rrSize,Process* rrQueue[],\
                             int *fcSize,Process* fcQueue[]);
-void handle_timeout_event_MUL(int current_time,int pid,\
+void handle_timeout_event_MUL(int *atat,int current_time,int pid,\
                                 int *eveSize,Event *event_heap[],\
                                 int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]);
-void handle_burstComp_event_MUL(int current_time,int pid,\
+void handle_burstComp_event_MUL(int *atat,int current_time,int pid,\
                                 int *eveSize,Event *event_heap[],\
                                 int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]);
@@ -48,10 +48,15 @@ int main(){
 
 
     printf("Starting the FCFS scheduling procedure\n");
-    //schedule_like_FCFS(psize,process_times);
+    float atat1=schedule_like_FCFS(psize,process_times);
 
+    printf("##########################################################################\n");
     printf("Starting the Multilevel- Queue Procedure\n");
-    schedule_like_Multilevel(psize,process_times);
+    float atat2=schedule_like_Multilevel(psize,process_times);
+
+    //Printing the results
+    printf("\n\n\n\n\n\n\n\n\n\n");
+    printf("ATAT1: %0.6f ATAT2: %0.6f\n",atat1,atat2);
 
     return 0;
 }
@@ -64,7 +69,7 @@ Event* create_event(int pid,eventType type,int time){
 
     return eve;
 }
-int schedule_like_FCFS(int psize,int process_times[][2]){
+float schedule_like_FCFS(int psize,int process_times[][2]){
     //Initializing the ready queue
     Queue *head=NULL,*tail=NULL;
     //Initializing the event heap
@@ -116,7 +121,13 @@ int schedule_like_FCFS(int psize,int process_times[][2]){
                                     &heap_size,event_heap);
 
     }
-    return 0;
+
+    //Printing the atat time
+    printf("################# GAME OVER ######################\n");
+    float ATAT=(float)atat/psize;
+    printf("The ATAT time for this scheduling: %0.6f\n",ATAT);
+
+    return ATAT;
 }
 Process* make_process_entry_FCFS(int pid,int arrival_time,\
                                     int cpu_burst,pState state){
@@ -249,7 +260,7 @@ void handle_incoming_new_process(int *assign_pid,\
 /*                       Multilevel Schedular              */
 
 //Main handler for the scheduling
-int schedule_like_Multilevel(int psize,int process_times[][2]){
+float schedule_like_Multilevel(int psize,int process_times[][2]){
     /*
     This function will schedule the precess using the
     multilevel queue and calculate the average turnaround time.
@@ -291,13 +302,13 @@ int schedule_like_Multilevel(int psize,int process_times[][2]){
                                     &fcSize,fcQueue);
         }
         else if(eve->type==CPUburstComp){
-            handle_burstComp_event_MUL(current_time,eve->pid,\
+            handle_burstComp_event_MUL(&atat,current_time,eve->pid,\
                                     &eveSize,event_heap,\
                                     &rrSize,rrQueue,\
                                     &fcSize,fcQueue);
         }
         else if(eve->type==TimerExpired){
-            handle_timeout_event_MUL(current_time,eve->pid,\
+            handle_timeout_event_MUL(&atat,current_time,eve->pid,\
                                     &eveSize,event_heap,\
                                     &rrSize,rrQueue,\
                                     &fcSize,fcQueue);
@@ -312,7 +323,12 @@ int schedule_like_Multilevel(int psize,int process_times[][2]){
                                     &eveSize,event_heap);
     }
 
-    return 0;
+    //Printing the atat time
+    printf("################# GAME OVER ######################\n");
+    float ATAT=(float)atat/psize;
+    printf("The ATAT time for this scheduling: %0.6f\n",ATAT);
+
+    return ATAT;
 }
 Process *make_process_entry_MUL(int pid,\
                                 int arrival_time,\
@@ -432,7 +448,7 @@ void handle_arrival_event_MUL(int current_time,int pid,\
         printf("CPU Busy adding the process to the Queue\n");
     }
 }
-void handle_timeout_event_MUL(int current_time,int pid,\
+void handle_timeout_event_MUL(int *atat,int current_time,int pid,\
                                 int *eveSize,Event *event_heap[],\
                                 int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]){
@@ -449,6 +465,9 @@ void handle_timeout_event_MUL(int current_time,int pid,\
     if(proc->burst_left<=0){//work done
         //Terminating the process
         proc->state=Terminated;
+
+        //Adding the turnaround time for this completed process
+        *atat+=((current_time+proc->burst_left)-proc->arrival_time);
     }
     else{//not over yet (still left to be done)
         //Changing the state of the process
@@ -462,7 +481,7 @@ void handle_timeout_event_MUL(int current_time,int pid,\
                             rrSize,rrQueue,fcSize,fcQueue);
 
 }
-void handle_burstComp_event_MUL(int current_time,int pid,\
+void handle_burstComp_event_MUL(int *atat,int current_time,int pid,\
                                 int *eveSize,Event *event_heap[],\
                                 int *rrSize,Process *rrQueue[],\
                                 int *fcSize,Process *fcQueue[]){
@@ -475,6 +494,9 @@ void handle_burstComp_event_MUL(int current_time,int pid,\
     //Freeing up the CPU
     CPU_HOLDER=-1;
     proc->state=Terminated;
+
+    //Adding the turnaround time (from arrival to execution time)
+    *atat+=(current_time-proc->arrival_time);
 
     //Now assigning the new process to the CPU
     printf("CPU burst completed for pid:%d\n",pid);
