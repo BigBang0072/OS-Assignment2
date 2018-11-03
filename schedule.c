@@ -322,9 +322,9 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
                                     psize,process_times,\
                                     &eveSize,event_heap);
 
-        for(int i=0;i<=rrSize;i++){
-            printf("%d\n",rrQueue[i]->pid);
-        }
+        // for(int i=0;i<=rrSize;i++){
+        //     printf("%d\n",rrQueue[i]->pid);
+        // }
         printf("\n");
     }
 
@@ -339,7 +339,6 @@ Process *make_process_entry_MUL(int pid,\
                                 int arrival_time,\
                                 int cpu_burst,\
                                 pState state,\
-                                int num_burst_taken,
                                 int time_quanta){
     //Creating the process entry with elements specialized for
     //he multilevel queue scheduling.
@@ -353,7 +352,7 @@ Process *make_process_entry_MUL(int pid,\
     proc->cpu_burst=cpu_burst;
     proc->burst_left=cpu_burst;
     proc->state=state;
-    proc->num_burst_taken=num_burst_taken;
+    proc->last_arrival_time=arrival_time;//used while scheduling
     proc->time_quanta=time_quanta;
 
     return proc;
@@ -363,7 +362,7 @@ void print_process_info(Process *proc){
     printf("arrival_time: %d\n",proc->arrival_time);
     printf("cpu_burst: %d\n",proc->cpu_burst);
     printf("burst_left: %d\n",proc->burst_left);
-    printf("burst_taken: %d\n",proc->num_burst_taken);
+    printf("last_arrival_time: %d\n",proc->last_arrival_time);
     printf("time_quanta: %d\n",proc->time_quanta);
     printf("state: (0:Running,1:Waiting) %d\n",proc->state);
 }
@@ -388,7 +387,6 @@ void assign_process_to_cpu(int current_time,\
 
         //Updating the status of the process
         rproc->state=Running;
-        rproc->num_burst_taken+=1;
         rproc->burst_left-=time_quanta;//if 0 or -ve done
 
         //Creating a time out event for the RR process
@@ -408,7 +406,6 @@ void assign_process_to_cpu(int current_time,\
 
         //Updating the status of the process
         rproc->state=Running;
-        rproc->num_burst_taken+=1;
         rproc->burst_left=0;//after this burst
 
         //Creating the completion event for this process
@@ -429,13 +426,11 @@ void handle_arrival_event_MUL(int current_time,int pid,\
     //Creating the new process as an welcome to new kid
     printf("Handling the arrival of new process:%d\n",pid);
     pState state=Waiting;//let is be in waiting until we decide the fate later
-    int num_burst_taken=0;
     //Creating the process varaible
     Process *proc=make_process_entry_MUL(pid,\
                                         process_times[pid][0],\
                                         process_times[pid][1],\
                                         state,\
-                                        num_burst_taken,\
                                         time_quanta);
     //Adding the process to the process queue
     process_table[pid]=proc;
@@ -477,6 +472,7 @@ void handle_timeout_event_MUL(int *atat,int current_time,int pid,\
     else{//not over yet (still left to be done)
         //Changing the state of the process
         proc->state=Waiting;
+        proc->last_arrival_time=current_time;//it is arriving again to queue
         //Pushing the process to the queue (for their next turn)
         push_to_Mqueue(proc,rrSize,rrQueue,fcSize,fcQueue);
     }

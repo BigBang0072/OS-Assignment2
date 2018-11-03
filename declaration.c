@@ -215,15 +215,10 @@ void add_and_maxprio_heapify_queue(int *size,Process *newP,Process *ready_heap[]
         int swap_flag=0;
 
         //whoever has arrived forst will stay up in heap
-        if(child->num_burst_taken < parent->num_burst_taken){
+        if(child->last_arrival_time < parent->last_arrival_time){
             swap_flag=1;
         }
-        else if(child->num_burst_taken==parent->num_burst_taken && \
-                child->arrival_time < parent->arrival_time){
-            swap_flag=1;
-        }
-        else if(child->num_burst_taken==parent->num_burst_taken &&\
-                child->arrival_time == parent->arrival_time &&\
+        else if(child->last_arrival_time == parent->last_arrival_time &&\
                 child->pid < parent->pid){
             swap_flag=1;
         }
@@ -261,37 +256,22 @@ Process* pop_and_maxprio_heapify_queue(int *size,Process* ready_heap[]){
         int cidx2=2*idx+2;
 
         int maxcidx=-1;
-        int minvalB=ready_heap[idx]->num_burst_taken;
-        int minvalT=ready_heap[idx]->arrival_time;
+        int minvalT=ready_heap[idx]->last_arrival_time;
 
         //Now checking if the swap is needed or not
-        if(cidx1<=*size && ready_heap[cidx1]->num_burst_taken < minvalB){
+        if(cidx1<=*size && ready_heap[cidx1]->last_arrival_time < minvalT){
             maxcidx=cidx1;
-            minvalB=ready_heap[cidx1]->num_burst_taken;
-            minvalT=ready_heap[cidx1]->arrival_time;
-        }
-        else if(cidx1<=*size && ready_heap[cidx1]->num_burst_taken==minvalB &&\
-                ready_heap[cidx1]->arrival_time < minvalT){
-            //if the burst taken is same but the child arrivaed earlier
-            maxcidx=cidx1;
-            minvalT=ready_heap[cidx1]->arrival_time;
+            minvalT=ready_heap[cidx1]->last_arrival_time;
         }
 
         //Checking the second children
-        if(cidx2<=*size && ready_heap[cidx2]->num_burst_taken < minvalB){
-            maxcidx=cidx2;
-            // minvalB=ready_heap[cidx2]->num_burst_taken;
-            // minvalT=ready_heap[cidx2]->arrival_time;
-        }
-        else if(cidx2<=*size && ready_heap[cidx2]->num_burst_taken==minvalB &&\
-                ready_heap[cidx2]->arrival_time < minvalT){
+        if(cidx2<=*size && ready_heap[cidx2]->last_arrival_time < minvalT){
             maxcidx=cidx2;
         }
 
         //if the children are equi-likely
-        if(cidx1<=*size && cidx2<=*size &&\
-            ready_heap[cidx1]->num_burst_taken==ready_heap[cidx2]->num_burst_taken &&\
-            ready_heap[cidx1]->arrival_time==ready_heap[cidx2]->arrival_time){
+        if(maxcidx!=-1 && cidx1<=*size && cidx2<=*size &&\
+            ready_heap[cidx1]->last_arrival_time==ready_heap[cidx2]->last_arrival_time){
 
             //Now choosing the the process with lower pid
             if(ready_heap[cidx1]->pid<ready_heap[cidx2]->pid){

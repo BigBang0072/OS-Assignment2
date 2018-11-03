@@ -12,7 +12,7 @@ typedef struct Process{
     //process state info
     pState state;
     int burst_left;//to know how much burst is left for the process
-    int num_burst_taken;//number of burst taken, so, this should be discarded in RR
+    int last_arrival_time;//to know time of arrival after premption (use this while scheduling)
     int time_quanta;
     int preemption;
 }Process;
