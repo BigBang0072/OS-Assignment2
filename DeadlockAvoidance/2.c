@@ -108,7 +108,7 @@ int main(int argc, char const *argv[]) {
         if (err == 0) {
             printf("Error in creating thread %d\n", i);
         }
-        // pthread_join(processArray[i],NULL);
+        pthread_join(processArray[i],NULL);
     }
     return 0;
 }
