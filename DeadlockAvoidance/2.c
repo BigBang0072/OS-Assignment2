@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <semaphore.h>
+#include <errno.h>
 #define n 8
 #define m 4
 
@@ -36,10 +37,10 @@ sem_t mutex;
 
 
 bool sufficientResources(int i){
-    // sem_wait(&mutex);
+    sem_wait(&mutex);
     for (int j = 0; j < m; j++) {
         if ( need[i][j] > available[j] ) {
-            // sem_post(&mutex);
+            sem_post(&mutex);
             return false;
         }
     }
@@ -48,7 +49,7 @@ bool sufficientResources(int i){
         available[j] -= need[i][j];
         need[i][j] = 0;
     }
-    // sem_post(&mutex);
+    sem_post(&mutex);
     return true;
 }
 
@@ -58,14 +59,14 @@ void runProcess(int i){
 }
 
 void collectResources(int i){
-    // sem_wait(&mutex);
+    sem_wait(&mutex);
     printf("Collecting resources from process %d\n", i);
     for (int j = 0; j < m; j++) {
         available[j] += allocation[i][j];
         allocation[i][j] = 0;
         need[i][j] = max[i][j];
     }
-    // sem_post(&mutex);
+    sem_post(&mutex);
     return;
 }
 
@@ -74,15 +75,14 @@ void* processCode(void* param){
     int i = *((int*)param);
     printf("Process: %d\n", i);
     while (iteration < k) {
-        sem_wait(&mutex);
+        // sem_wait(&mutex);
         bool result = sufficientResources(i);
         while ( result == false );
         printf("Execution of process %d is starting\n", i);
         runProcess(i);
         collectResources(i);
-        printf("%d\n", iteration);
         iteration++;
-        sem_post(&mutex);
+        // sem_post(&mutex);
     }
     pthread_exit(0);
 }
@@ -99,15 +99,23 @@ int main(int argc, char const *argv[]) {
             need[i][j] = max[i][j] - allocation[i][j];
         }
     }
+    int processId[n];
+    for (int i = 0; i < n; i++) {
+        processId[i] = i;
+    }
     pthread_t processArray[n];
     for (int i = 0; i < n; i++) {
-        pthread_t processArray[i];
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        int err = pthread_create(&processArray[i], &attr, processCode, &i);
-        if (err == 0) {
+        processArray[i] = i;
+        // pthread_attr_t attr;
+        // pthread_attr_init(&attr);
+        int err = pthread_create(&processArray[i], NULL, processCode, &processId[i]);
+        if (err != 0) {
             printf("Error in creating thread %d\n", i);
+        } else {
+            printf("Thread %d created\n", i);
         }
+    }
+    for (int i = 0; i < n; i++) {
         pthread_join(processArray[i],NULL);
     }
     return 0;
