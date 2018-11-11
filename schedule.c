@@ -42,7 +42,7 @@ void handle_burstComp_event_MUL(int *atat,int current_time,int pid,\
 
 int main(){
     //Reading the process times from the txt file
-    char filename[100]="processes.csv";
+    char filename[100]="processes1.csv";
     int process_times[max_process][2];
     int psize=read_process_file(process_times,filename);
 
@@ -50,12 +50,13 @@ int main(){
     printf("Starting the FCFS scheduling procedure\n");
     float atat1=schedule_like_FCFS(psize,process_times);
 
-    printf("##########################################################################\n");
+    printf("\n\n\n\n\n\n");
+    printf("################################################################\n");
     printf("Starting the Multilevel- Queue Procedure\n");
     float atat2=schedule_like_Multilevel(psize,process_times);
 
     //Printing the results
-    printf("\n\n\n\n\n\n\n\n\n\n");
+    printf("\n\n\n\n\n\n");
     printf("ATAT1: %0.6f ATAT2: %0.6f\n",atat1,atat2);
 
     return 0;
