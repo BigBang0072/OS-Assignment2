@@ -55,7 +55,9 @@ bool sufficientResources(int i){
 }
 
 void runProcess(int i){
+    sem_wait(&mutex1);
     printf("Process %d is running\n", i);
+    sem_post(&mutex1);
     return;
 }
 
@@ -104,14 +106,14 @@ void collectResources(int i){
 
 void* processCode(void* param){
 
-    sem_wait(&mutex1);
+    //sem_wait(&mutex1);
     int i = *((int*)param);
-    bool result = sufficientResources(i);
-    while ( result == false );
+    //bool result = sufficientResources(i);
+    while ( sufficientResources(i) == false );
     printf("Execution of process %d is starting\n", i);
     runProcess(i);
     collectResources(i);
-    sem_post(&mutex1);
+    //sem_post(&mutex1);
     pthread_exit(0);
 }
 
