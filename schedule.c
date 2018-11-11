@@ -45,7 +45,13 @@ int main(){
     char filename[100]="processes1.csv";
     int process_times[max_process][2];
     int psize=read_process_file(process_times,filename);
-
+    //Calculating the total burst time
+    int tbtime=0;
+    for(int i=0;i<psize;i++){
+        tbtime+=process_times[i][1];
+    }
+    //taking the average burst time
+    int atbtime=tbtime/psize;
 
     printf("Starting the FCFS scheduling procedure\n");
     float atat1=schedule_like_FCFS(psize,process_times);
@@ -58,6 +64,7 @@ int main(){
     //Printing the results
     printf("\n\n\n\n\n\n");
     printf("ATAT1: %0.6f ATAT2: %0.6f\n",atat1,atat2);
+    printf("AWT1 : %0.6f AWT2 : %0.6f\n",atat1-atbtime,atat2-atbtime);
 
     return 0;
 }
@@ -392,8 +399,18 @@ void assign_process_to_cpu(int current_time,\
 
         //Creating a time out event for the RR process
         //(handle completion in timeout event)
-        Event *eve=create_event(rproc->pid,TimerExpired,\
-                                current_time+time_quanta);
+        Event *eve;
+        if(rproc->burst_left<=0){
+            //Creating the burst completion event
+            eve=create_event(rproc->pid,CPUburstComp,\
+                        current_time+time_quanta+rproc->burst_left);
+            //Specifying that the burst has been completed
+            rproc->burst_left=0;
+        }
+        else{
+            eve=create_event(rproc->pid,TimerExpired,\
+                        current_time+time_quanta);
+        }
         //Adding the event to event queue
         add_and_min_heapify(eveSize,eve,event_heap);
 
