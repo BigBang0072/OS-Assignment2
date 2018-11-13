@@ -9,13 +9,13 @@
 #define m 4
 
 int max[n][m] = {
-    {1,1,1,0},
+    {1,1,1,0},//0
     {0,1,1,1},
-    {1,0,1,1},
+    {1,0,1,1},//2
     {1,1,0,1},
-    {1,0,0,0},
+    {1,0,0,0},//4
     {0,1,0,0},
-    {0,0,1,0},
+    {0,0,1,0},//6
     {0,0,0,1}
 };
 int available[m];
@@ -35,9 +35,11 @@ int k;
 sem_t mutex1;
 sem_t mutex2;
 sem_t mutex3;
+sem_t mutex_array[n];
 time_t t;
 
 bool sufficientResources(int i){
+    printf("Attempting to allocate resources to process:%d\n",i);
     sem_wait(&mutex2);
     for (int j = 0; j < m; j++) {
         if ( need[i][j] > available[j] ) {
@@ -106,14 +108,17 @@ void collectResources(int i){
 
 void* processCode(void* param){
 
-    //sem_wait(&mutex1);
     int i = *((int*)param);
+    sem_wait(&mutex_array[i]);
     //bool result = sufficientResources(i);
     while ( sufficientResources(i) == false );
+    for(int j=0;j<4;j++){
+        printf("%d %d %d\n",i,j,available[j]);
+    }
     printf("Execution of process %d is starting\n", i);
     runProcess(i);
     collectResources(i);
-    //sem_post(&mutex1);
+    sem_post(&mutex_array[i]);
     pthread_exit(0);
 }
 
@@ -135,6 +140,7 @@ int main(int argc, char const *argv[]) {
     int processId[n];
     for (int i = 0; i < n; i++) {
         processId[i] = i;
+        sem_init(&mutex_array[i],0,1);
     }
     pthread_t processArray[n];
     for (int i = 0; i < n; i++) {
