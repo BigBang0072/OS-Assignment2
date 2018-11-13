@@ -49,7 +49,6 @@ time_t t;
 
 // check if resources are available for the process
 bool sufficientResources(int i){
-    printf("Attempting to allocate resources to process:%d\n",i);
     sem_wait(&mutex2);
     for (int j = 0; j < m; j++) {
         if ( need[i][j] > available[j] ) {
@@ -125,9 +124,6 @@ void* processCode(void* param){
     sem_wait(&mutex_array[i]);
     //bool result = sufficientResources(i);
     while ( sufficientResources(i) == false );
-    for(int j=0;j<4;j++){
-        printf("%d %d %d\n",i,j,available[j]);
-    }
     printf("Execution of process %d is starting\n", i);
     runProcess(i);
     collectResources(i);
