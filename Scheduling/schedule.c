@@ -51,7 +51,7 @@ int main(){
         tbtime+=process_times[i][1];
     }
     //taking the average burst time
-    int atbtime=tbtime/psize;
+    float atbtime=(float)tbtime/psize;
 
     printf("Starting the FCFS scheduling procedure\n");
     float atat1=schedule_like_FCFS(psize,process_times);
