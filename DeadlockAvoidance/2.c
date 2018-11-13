@@ -5,9 +5,13 @@
 #include <stdbool.h>
 #include <semaphore.h>
 #include <errno.h>
+
+// n : number of processes
+// m : number of resources
 #define n 8
 #define m 4
 
+// max resources required for each processes
 int max[n][m] = {
     {1,1,1,0},//0
     {0,1,1,1},
@@ -18,7 +22,11 @@ int max[n][m] = {
     {0,0,1,0},//6
     {0,0,0,1}
 };
+
+// array for quantity of each resource
 int available[m];
+
+// array to store quantities of resources allocated to each process
 int allocation[n][m] = {
     {0,0,0,0},
     {0,0,0,0},
@@ -30,6 +38,7 @@ int allocation[n][m] = {
     {0,0,0,0}
 };
 
+// additional resources required for processes
 int need[n][m];
 int k;
 sem_t mutex1;
@@ -38,6 +47,7 @@ sem_t mutex3;
 sem_t mutex_array[n];
 time_t t;
 
+// check if resources are available for the process
 bool sufficientResources(int i){
     printf("Attempting to allocate resources to process:%d\n",i);
     sem_wait(&mutex2);
@@ -56,6 +66,7 @@ bool sufficientResources(int i){
     return true;
 }
 
+// the body of the process
 void runProcess(int i){
     sem_wait(&mutex1);
     printf("Process %d is running\n", i);
@@ -63,6 +74,7 @@ void runProcess(int i){
     return;
 }
 
+// collect resources according to the collection probabilities
 void collectResources(int i){
 
     sem_wait(&mutex3);
@@ -106,6 +118,7 @@ void collectResources(int i){
     return;
 }
 
+// code to run the created thread
 void* processCode(void* param){
 
     int i = *((int*)param);
