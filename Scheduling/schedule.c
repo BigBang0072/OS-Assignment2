@@ -308,10 +308,9 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
         if(eve->valid==0){
             //This will mean that the job was already prempted
             printf("FALSE ALARM: Nullifying this event\n");
-            continue;
+            //continue;
         }
-
-        if(eve->type==Arrival){
+        else if(eve->type==Arrival){
             handle_arrival_event_MUL(current_time,eve->pid,\
                                     process_times,\
                                     &eveSize,event_heap,\
