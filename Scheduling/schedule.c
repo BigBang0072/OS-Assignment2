@@ -493,8 +493,8 @@ void handle_arrival_event_MUL(int current_time,int pid,\
 
         //Marking the completion event as NULL
         for(int i=0;i<=*eveSize;i++){
-            if(event_heap->pid==CPU_HOLDER && event_heap->type=CPUburstComp){
-                event_heap->valid=0;
+            if(event_heap[i]->pid==CPU_HOLDER && event_heap[i]->type==CPUburstComp){
+                event_heap[i]->valid=0;
                 printf("Removing the validity of the CPU burst completion event for pid:%d\n",\
                                         CPU_HOLDER);
             }
