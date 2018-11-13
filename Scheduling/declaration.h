@@ -12,7 +12,8 @@ typedef struct Process{
     //process state info
     pState state;
     int burst_left;//to know how much burst is left for the process
-    int last_arrival_time;//to know time of arrival after premption (use this while scheduling)
+    int last_arrival_time;//to know time of arrival after premption (use this while scheduling RR)
+    int last_start_time;//for FCFS element to know when they ran last time
     int time_quanta;
     int preemption;
 }Process;

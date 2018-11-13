@@ -310,6 +310,13 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
                                     &fcSize,fcQueue);
         }
         else if(eve->type==CPUburstComp){
+            //Nullifying the event of the FCFS completion in case of preemption
+            if(eve->pid!=CPU_HOLDER){
+                //This will mean that the job was already prempted
+                printf("Nullifying this event as the FCFC job was preemted before\n");
+                continue;
+            }
+            //Otherwise handling the completion event,since CPU will be held by same pid
             handle_burstComp_event_MUL(&atat,current_time,eve->pid,\
                                     &eveSize,event_heap,\
                                     &rrSize,rrQueue,\
@@ -424,11 +431,12 @@ void assign_process_to_cpu(int current_time,\
 
         //Updating the status of the process
         rproc->state=Running;
-        rproc->burst_left=0;//after this burst
+        rproc->last_start_time=current_time;//to reduce the burst time later
+        //rproc->burst_left=0;//after this burst
 
         //Creating the completion event for this process
         Event *eve=create_event(rproc->pid,CPUburstComp,\
-                                current_time+rproc->cpu_burst);
+                                current_time+rproc->burst_left);
         //Adding the event to event queue
         add_and_min_heapify(eveSize,eve,event_heap);
 
@@ -459,6 +467,31 @@ void handle_arrival_event_MUL(int current_time,int pid,\
     //Now handling the fate of the process (run to to ready queue)
     if(CPU_HOLDER==-1){//Cpu is free
         //Assigning a process to the CPU
+        assign_process_to_cpu(current_time,eveSize,event_heap,\
+                                rrSize,rrQueue,fcSize,fcQueue);
+    }
+    else if(process_table[CPU_HOLDER]->sched_policy=='F' &&\
+            proc->sched_policy=='R'){
+        //To add the preemption of the event when the RR process arrives
+        //and the CPU is held by the FCFS process
+
+        //Reducing the burst time
+        int last_start_time=process_table[CPU_HOLDER]->last_start_time;
+        int burst_done=current_time-last_start_time;
+        process_table[CPU_HOLDER]->burst_left-=burst_done;
+
+        //Changing the status of the process
+        process_table[CPU_HOLDER]->state=Waiting;
+
+        //Adding this process to the process queue
+        push_to_Mqueue(process_table[CPU_HOLDER],\
+                        rrSize,rrQueue,fcSize,fcQueue);
+
+        printf("** Prempting the FCFS process:%d for RR process:%d **\n",CPU_HOLDER,pid);
+        //Freeing up the CPU
+        CPU_HOLDER=-1;
+
+        //Assigning the new process based on the priority
         assign_process_to_cpu(current_time,eveSize,event_heap,\
                                 rrSize,rrQueue,fcSize,fcQueue);
     }
