@@ -74,6 +74,7 @@ Event* create_event(int pid,eventType type,int time){
     eve->pid=pid;
     eve->type=type;
     eve->time=time;
+    eve->valid=1;//that this event is valid, will be used in FCFS Multilevel
 
     return eve;
 }
@@ -302,6 +303,14 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
         current_time=eve->time;
         printf("Current Sync Time:%d\n",current_time);
 
+        //Nullifying the event of the FCFS completion in case of preemption
+        //Doing test for the correctness
+        if(eve->valid==0){
+            //This will mean that the job was already prempted
+            printf("FALSE ALARM: Nullifying this event\n");
+            continue;
+        }
+
         if(eve->type==Arrival){
             handle_arrival_event_MUL(current_time,eve->pid,\
                                     process_times,\
@@ -310,12 +319,6 @@ float schedule_like_Multilevel(int psize,int process_times[][2]){
                                     &fcSize,fcQueue);
         }
         else if(eve->type==CPUburstComp){
-            //Nullifying the event of the FCFS completion in case of preemption
-            if(eve->pid!=CPU_HOLDER){
-                //This will mean that the job was already prempted
-                printf("Nullifying this event as the FCFC job was preemted before\n");
-                continue;
-            }
             //Otherwise handling the completion event,since CPU will be held by same pid
             handle_burstComp_event_MUL(&atat,current_time,eve->pid,\
                                     &eveSize,event_heap,\
@@ -484,10 +487,19 @@ void handle_arrival_event_MUL(int current_time,int pid,\
         process_table[CPU_HOLDER]->state=Waiting;
 
         //Adding this process to the process queue
+        printf("** Prempting the FCFS process:%d for RR process:%d **\n",CPU_HOLDER,pid);
         push_to_Mqueue(process_table[CPU_HOLDER],\
                         rrSize,rrQueue,fcSize,fcQueue);
 
-        printf("** Prempting the FCFS process:%d for RR process:%d **\n",CPU_HOLDER,pid);
+        //Marking the completion event as NULL
+        for(int i=0;i<=*eveSize;i++){
+            if(event_heap->pid==CPU_HOLDER && event_heap->type=CPUburstComp){
+                event_heap->valid=0;
+                printf("Removing the validity of the CPU burst completion event for pid:%d\n",\
+                                        CPU_HOLDER);
+            }
+        }
+
         //Freeing up the CPU
         CPU_HOLDER=-1;
 

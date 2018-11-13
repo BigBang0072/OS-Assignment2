@@ -25,6 +25,7 @@ typedef struct Event{
     int pid;//the id which generated this event
     eventType type;
     int time;//time of occurance of this event
+    int valid;//1:valid 0:not-valid
 }Event;
 
 /*                  Function Declarations                       */
